@@ -24,13 +24,14 @@ fn main() -> Result<()> {
         toml::from_str(&config_file)?
     };
 
-    println!("{:?}", config);
+    println!("Config {:?}", config);
 
     let cur_dir = std::env::current_dir()?;
     let entries = fs::read_dir(cur_dir)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
+    println!("Entries {:?}", entries);
     for i in entries
         .iter()
         .filter(|p| !p.is_dir())
@@ -40,7 +41,9 @@ fn main() -> Result<()> {
             let filename = i.file_name().unwrap().to_str().unwrap().to_owned();
             if filename.contains(&m.pattern) {
                 println!("Matching {} with {}", &filename, &m.pattern);
-                let to = PathBuf::from(&m.path).with_file_name(&filename);
+                let mut to = PathBuf::from(&m.path);
+                to.push(&filename);
+                println!("Moving to: {:?}", to);
                 std::fs::rename(i, to)?;
             }
         }
