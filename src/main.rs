@@ -34,7 +34,7 @@ fn main() -> Result<()> {
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
-    println!("Entries {:?}", entries);
+    //println!("Entries {:?}", entries);
     for i in entries
         .iter()
         .filter(|p| !p.is_dir())
