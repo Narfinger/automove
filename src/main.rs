@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,11 +20,14 @@ struct Move {
 
 fn main() -> Result<()> {
     let config: Config = {
-        let config_file = read_to_string("move.toml")?;
+        let mut config_filename = std::env::current_dir().context("Could not find current dir")?;
+        config_filename.push("move.toml");
+        let config_file = read_to_string(&config_filename)
+            .with_context(|| format!("could not open config file at: {:?}", &config_filename))?;
         toml::from_str(&config_file)?
     };
 
-    println!("Config {:?}", config);
+    //println!("Config {:?}", config);
 
     let cur_dir = std::env::current_dir()?;
     let entries = fs::read_dir(cur_dir)?
