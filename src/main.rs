@@ -27,10 +27,9 @@ fn main() -> Result<()> {
         toml::from_str(&config_file)?
     };
 
-    //println!("Config {:?}", config);
-
-    let cur_dir = std::env::current_dir()?;
-    let entries = fs::read_dir(cur_dir)?
+    let cur_dir = std::env::current_dir().context("Error in getting current directory")?;
+    let entries = fs::read_dir(cur_dir)
+        .context("Error in reading current directory")?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
@@ -41,13 +40,24 @@ fn main() -> Result<()> {
         .filter(|p| p.extension().map_or(false, |f| f == "mkv"))
     {
         for m in config.moves.iter() {
-            let filename = i.file_name().unwrap().to_str().unwrap().to_owned();
-            if filename.contains(&m.pattern) {
-                println!("Matching {} with {}", &filename, &m.pattern);
-                let mut to = PathBuf::from(&m.path);
-                to.push(&filename);
-                println!("Moving to: {:?}", to);
-                std::fs::rename(i, to)?;
+            if let Some(filename) = i.file_name().and_then(|s| s.to_str()) {
+                if filename.contains(&m.pattern) {
+                    println!("Matching {} with {}", &filename, &m.pattern);
+                    let mut to = PathBuf::from(&m.path);
+                    to.push(&filename);
+                    println!("Moving to: {:?}", to);
+                    std::fs::rename(&i, &to).with_context(|| {
+                        format!(
+                            "Moving file from {} to {:?} did not succeed",
+                            &filename, &to
+                        )
+                    })?;
+                }
+            } else {
+                println!(
+                    "Skipping filename {:?} because conversion did not work",
+                    i.file_name()
+                );
             }
         }
     }
