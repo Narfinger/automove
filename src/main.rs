@@ -34,11 +34,15 @@ fn main() -> Result<()> {
         .collect::<Result<Vec<_>, io::Error>>()?;
 
     //println!("Entries {:?}", entries);
-    for i in entries
+    let files: Vec<&PathBuf> = entries
         .iter()
         .filter(|p| !p.is_dir())
         .filter(|p| p.extension().map_or(false, |f| f == "mkv"))
-    {
+        .collect();
+    if files.is_empty() {
+        println!("Nothing to move");
+    }
+    for i in files {
         for m in config.moves.iter() {
             if let Some(filename) = i.file_name().and_then(|s| s.to_str()) {
                 if filename.contains(&m.pattern) {
