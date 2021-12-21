@@ -4,6 +4,7 @@ use std::{
     path::PathBuf,
 };
 
+use ansi_term::Color::{Blue, Green};
 use anyhow::{Context, Result};
 use serde_derive::{Deserialize, Serialize};
 
@@ -46,14 +47,19 @@ fn main() -> Result<()> {
         for m in config.moves.iter() {
             if let Some(filename) = i.file_name().and_then(|s| s.to_str()) {
                 if filename.contains(&m.pattern) {
-                    println!("Matching {} with {}", &filename, &m.pattern);
+                    println!(
+                        "Matching {} with {}",
+                        Green.paint(filename),
+                        Blue.paint(&m.pattern)
+                    );
                     let mut to = PathBuf::from(&m.path);
                     to.push(&filename);
                     println!("Moving to: {:?}", to);
                     std::fs::rename(&i, &to).with_context(|| {
                         format!(
-                            "Moving file from {} to {:?} did not succeed",
-                            &filename, &to
+                            "Moving file from {} to {} did not succeed",
+                            Green.paint(filename),
+                            Blue.paint(to.to_string_lossy())
                         )
                     })?;
                 }
