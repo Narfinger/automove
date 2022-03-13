@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use ansi_term::Color::{Blue, Green};
+use ansi_term::Color::{Blue, Green, Red};
 use anyhow::{Context, Result};
 use serde_derive::{Deserialize, Serialize};
 
@@ -53,15 +53,22 @@ fn main() -> Result<()> {
                         Blue.paint(&m.pattern)
                     );
                     let mut to = PathBuf::from(&m.path);
-                    to.push(&filename);
-                    println!("Moving to: {:?}", to);
-                    std::fs::rename(&i, &to).with_context(|| {
-                        format!(
-                            "Moving file from {} to {} did not succeed",
-                            Green.paint(filename),
-                            Blue.paint(to.to_string_lossy())
-                        )
-                    })?;
+                    if to.exists() && to.is_dir() {
+                        to.push(&filename);
+                        println!("Moving to: {:?}", to);
+                        std::fs::rename(&i, &to).with_context(|| {
+                            format!(
+                                "Moving file from {} to {} did not succeed",
+                                Green.paint(filename),
+                                Blue.paint(to.to_string_lossy())
+                            )
+                        })?;
+                    } else {
+                        println!(
+                            "Skipping {} as it does not exist or is not a directory",
+                            Red.paint(to.to_string_lossy())
+                        );
+                    }
                 }
             } else {
                 println!(
