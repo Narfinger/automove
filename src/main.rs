@@ -17,6 +17,7 @@ struct Config {
 struct Move {
     pattern: String,
     path: String,
+    directory: Option<bool>,
 }
 
 fn main() -> Result<()> {
@@ -37,7 +38,6 @@ fn main() -> Result<()> {
     //println!("Entries {:?}", entries);
     let files: Vec<&PathBuf> = entries
         .iter()
-        .filter(|p| !p.is_dir())
         .filter(|p| p.extension().map_or(false, |f| f == "mkv"))
         .collect();
     if files.is_empty() {
@@ -46,7 +46,10 @@ fn main() -> Result<()> {
     for i in files {
         for m in config.moves.iter() {
             if let Some(filename) = i.file_name().and_then(|s| s.to_str()) {
-                if filename.contains(&m.pattern) {
+                if filename.contains(&m.pattern)
+                    && ((i.is_file() && m.directory.unwrap_or(false) == false)
+                        || (m.directory.unwrap_or(false) == true && i.is_dir()))
+                {
                     println!(
                         "Matching {} with {}",
                         Green.paint(filename),

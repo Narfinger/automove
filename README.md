@@ -11,4 +11,5 @@ path = "/home/user/OpenSourceMovies"
 [[moves]]
 pattern = "Elephants Dream"
 path = "/home/user/OpenSourceMovies"
+directory = true
 ```
