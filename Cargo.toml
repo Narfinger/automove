@@ -1,6 +1,6 @@
 [package]
 name = "automove"
-version = "1.0.5"
+version = "1.0.6"
 edition = "2021"
 license = "MIT"
 categories = ["command-line-utilities"]
@@ -11,7 +11,7 @@ description = "Moves files that match a certain pattern described in move.toml i
 
 [dependencies]
 ansi_term = "0.12.1"
-anyhow = "1.0.55"
+anyhow = "1.0.56"
 serde = "1.0.136"
 serde_derive = "1.0.136"
 toml = "0.5.8"

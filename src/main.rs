@@ -36,10 +36,7 @@ fn main() -> Result<()> {
         .collect::<Result<Vec<_>, io::Error>>()?;
 
     //println!("Entries {:?}", entries);
-    let files: Vec<&PathBuf> = entries
-        .iter()
-        .filter(|p| p.extension().map_or(false, |f| f == "mkv"))
-        .collect();
+    let files: Vec<&PathBuf> = entries.iter().collect();
     if files.is_empty() {
         println!("Nothing to move");
     }
