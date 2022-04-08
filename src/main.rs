@@ -36,7 +36,8 @@ fn main() -> Result<()> {
         .collect::<Result<Vec<_>, io::Error>>()?;
 
     //println!("Entries {:?}", entries);
-    let files: Vec<&PathBuf> = entries.iter().collect();
+    let files = entries;
+    //let files: Vec<&PathBuf> = entries.iter().collect();
     if files.is_empty() {
         println!("Nothing to move");
     }
@@ -44,8 +45,8 @@ fn main() -> Result<()> {
         for m in config.moves.iter() {
             if let Some(filename) = i.file_name().and_then(|s| s.to_str()) {
                 if filename.contains(&m.pattern)
-                    && ((i.is_file() && m.directory.unwrap_or(false) == false)
-                        || (m.directory.unwrap_or(false) == true && i.is_dir()))
+                    && ((i.is_file() && !m.directory.unwrap_or(false))
+                        || (m.directory.unwrap_or(false) && i.is_dir()))
                 {
                     println!(
                         "Matching {} with {}",
