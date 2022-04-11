@@ -6,22 +6,62 @@ use std::{
 
 use ansi_term::Color::{Blue, Green, Red};
 use anyhow::{Context, Result};
+use clap::{Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
+
+#[derive(Parser)]
+#[clap(author, version, about, long_about = None)]
+struct Cli {
+    /// Modify the moves.toml
+    #[clap(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Adds to current moves
+    Add { pattern: String, path: String },
+
+    /// List all current moves
+    List,
+
+    /// Removes an entry with a given match
+    Delete { pattern: String },
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     moves: Vec<Move>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 struct Move {
     pattern: String,
     path: String,
     directory: Option<bool>,
 }
 
+fn save_config(config: &Config) -> Result<()> {
+    let mut config_filename = std::env::current_dir().context("Could not find current dir")?;
+    config_filename.push("move.toml");
+    let toml = toml::to_string_pretty(config)?;
+    fs::write(&config_filename, toml)?;
+
+    Ok(())
+}
+
+fn list_config(config: &Config) -> Result<()> {
+    for i in &config.moves {
+        println!("({} ->  {})", Green.paint(&i.pattern), Blue.paint(&i.path));
+    }
+    println!();
+    Ok(())
+}
+
 fn main() -> Result<()> {
-    let config: Config = {
+    let cli = Cli::parse();
+
+    let mut config: Config = {
         let mut config_filename = std::env::current_dir().context("Could not find current dir")?;
         config_filename.push("move.toml");
         let config_file = read_to_string(&config_filename)
@@ -29,12 +69,35 @@ fn main() -> Result<()> {
         toml::from_str(&config_file)?
     };
 
+    match cli.command {
+        Some(Commands::Add { pattern, path }) => {
+            let new = Move {
+                pattern,
+                path,
+                directory: None,
+            };
+            config.moves.push(new);
+            save_config(&config)?;
+            list_config(&config)?
+        }
+        Some(Commands::List) => list_config(&config)?,
+        Some(Commands::Delete { pattern }) => {
+            config.moves.retain(|m: &Move| m.pattern != pattern);
+            save_config(&config)?;
+            list_config(&config)?
+        }
+        None => move_files(config)?,
+    };
+
+    Ok(())
+}
+
+fn move_files(config: Config) -> Result<(), anyhow::Error> {
     let cur_dir = std::env::current_dir().context("Error in getting current directory")?;
     let entries = fs::read_dir(cur_dir)
         .context("Error in reading current directory")?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
-
     //println!("Entries {:?}", entries);
     let files = entries;
     //let files: Vec<&PathBuf> = entries.iter().collect();
@@ -79,6 +142,5 @@ fn main() -> Result<()> {
             }
         }
     }
-
     Ok(())
 }
