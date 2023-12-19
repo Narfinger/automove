@@ -11,8 +11,8 @@ description = "Moves files that match a certain pattern described in move.toml i
 
 [dependencies]
 ansi_term = "0.12.1"
-anyhow = "1.0.56"
-clap = {version = "3.1.8", features = ["derive"]}
-serde = "1.0.136"
-serde_derive = "1.0.136"
-toml = "0.5.8"
+anyhow = "1.0.75"
+clap = {version = "4.4.11", features = ["derive"]}
+serde = "1.0.193"
+serde_derive = "1.0.193"
+toml = "0.8.8"
